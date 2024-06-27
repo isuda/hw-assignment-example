@@ -19,20 +19,24 @@
       downloadFiles() {
         const selectedFiles = this.$refs.fileCheckboxes
           .filter(c => c.checked)
-          .map(c => this.files[c.value]);
+          .map(c => this.files[c.value])
+          .filter(c => c.status === STATUS.available);
 
-        alert(`Downloading:\n${selectedFiles.map(f => f.path).join("\n")}`);
+        if (selectedFiles.length > 0) {
+          alert(`Downloading:\n${selectedFiles.map(f => `${f.device}:${f.path}`).join("\n")}`);
+        } else {
+          alert("No files available to download");
+        }
       },
       fileClicked() {
         this.updateCheckboxState();
       },
       updateCheckboxState() {
         this.numSelected = this.$refs.fileCheckboxes.filter(c => c.checked).length;
-        const availableFiles = this.files.filter(f => f.status === STATUS.available).length;
         if (this.numSelected === 0) {
           this.$refs.checkToggle.indeterminate = false;
           this.$refs.checkToggle.checked = false;
-        } else if (this.numSelected === availableFiles) {
+        } else if (this.numSelected === this.files.length) {
           this.$refs.checkToggle.indeterminate = false;
           this.$refs.checkToggle.checked = true;
         } else {
@@ -40,21 +44,16 @@
         }
       },
       toggleChecked() {
-        const availableFiles = this.files.filter(f => f.status === STATUS.available).length;
-        if (this.numSelected === availableFiles) {
+        if (this.numSelected === this.files.length) {
           this.$refs.fileCheckboxes.forEach(c => c.checked = false);
           this.$refs.checkToggle.indeterminate = false;
           this.$refs.checkToggle.checked = false;
           this.numSelected = 0;
         } else {
-          this.$refs.fileCheckboxes.forEach(c => {
-            if (!c.disabled) {
-              c.checked = true
-            }
-          });
+          this.$refs.fileCheckboxes.forEach(c => c.checked = true);
           this.$refs.checkToggle.indeterminate = false;
           this.$refs.checkToggle.checked = true;
-          this.numSelected = availableFiles;
+          this.numSelected = this.files.length;
         }
       }
     },
@@ -88,7 +87,7 @@
             <span class="select-controls">
               <input id="check-toggle" ref="checkToggle" @click="toggleChecked" type="checkbox"> <label class="selected-label" for="check-toggle">{{ numSelectedLabel }}</label>
             </span>
-            <button id="download-button" class="download-button" type="submit" :disabled="noSelectedFiles" aria-label="Download selected files">
+            <button id="download-button" class="download-button" type="submit" aria-label="Download selected files">
               <span class="download-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m8 12 4 4 4-4"/>
@@ -108,7 +107,7 @@
       </thead>
       <tbody>
         <tr v-for="(file, index) in files">
-          <td><input type="checkbox" ref="fileCheckboxes" :disabled="file.status !== 'available'" class="select-file-checkbox" @click="fileClicked" :value="index" aria-label="Select file"></td>
+          <td><input type="checkbox" ref="fileCheckboxes" class="select-file-checkbox" @click="fileClicked" :value="index" aria-label="Select file"></td>
           <td>{{ file.name }}</td>
           <td>{{ file.device }}</td>
           <td>{{ file.path }}</td>
@@ -129,15 +128,10 @@
   --spacing-small: 0.7em;
 
   --font-color-normal: black;
-  --font-color-disabled: #C6C6C6;
 }
 
 input[type="checkbox"]:not(:disabled) {
   cursor:pointer;
-}
-
-:disabled, [disabled] {
-  color: var(--font-color-disabled);
 }
 
 body {
@@ -170,10 +164,6 @@ table.file-list {
 
 .download-icon > svg {
   stroke: var(--font-color-normal);
-}
-
-.download-button:disabled .download-icon > svg {
-  stroke: var(--font-color-disabled);
 }
 
 .select-controls {

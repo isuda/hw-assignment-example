@@ -34,9 +34,6 @@ This component displays a list of files which can be downloaded. It should be ab
 * Clicking "Download Selected" when some or all items are displayed should generate an alert box with the path and device of all selected files.
 * Precise/exact HTML formatting/styling to match the mockup is not required however rows should change colour when selected and on hover.
 
-> Note: I am interpreting the requirement "The select-all checkbox should be in a selected state if all items are selected." as
-> "The select-all checkbox should be in a selected state if all available items are selected."
-
 ## Setup
 
 ```bash
